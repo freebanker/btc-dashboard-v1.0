@@ -13,6 +13,11 @@ export async function GET(){
   const oiUsd=Number(oi.openInterest||0)*Number(fund.markPrice||0);
   const ratio=Number(binPos?.[0]?.longShortRatio||0);
   const okxRate=Number(okxPos?.data?.[0]?.fundingRate||0)*100;
-  return NextResponse.json({fundingRate:fr,okxFundingRate:okxRate,openInterest:oiUsd,longShortRatio:ratio,longPct:ratio>0?ratio/(1+ratio)*100:0,shortPct:ratio>0?100-ratio/(1+ratio)*100:0,updatedAt:Date.now()});
+  const longPct=ratio>0?ratio/(1+ratio)*100:50; const shortPct=100-longPct;
+ const fundingScore=fr>0.03?35:fr>0.01?55:fr>-0.01?70:fr>-0.03?60:40;
+ const oiScore=oiUsd>0?70:50; const crowd=longPct>58&&fr>0.01?"LONG CROWDED":shortPct>58&&fr<-0.01?"SHORT CROWDED": "LEVERAGE HEALTHY";
+ const risk=crowd==="LONG CROWDED"?"HIGH":crowd==="SHORT CROWDED"?"HIGH":"NORMAL";
+ const derivativesScore=Math.round(fundingScore*.5+oiScore*.2+(100-Math.abs(longPct-50)*2)*.3);
+ return NextResponse.json({fundingRate:fr,okxFundingRate:okxRate,openInterest:oiUsd,longShortRatio:ratio,longPct,shortPct,crowd,risk,derivativesScore,updatedAt:Date.now()});
  }catch(e){return NextResponse.json({error:"derivatives unavailable",updatedAt:Date.now()},{status:200})}
 }
