@@ -1,12 +1,12 @@
 "use client";
 import {useEffect,useState} from "react";
 import {Activity,ArrowUpRight,Bitcoin,CalendarDays,Newspaper,ShieldAlert,Wallet} from "lucide-react";
-type Market={price:number;change24h:number;volume24h:number;high24h:number;low24h:number;okx:{price:number;bid:number;ask:number}}; type Deriv={fundingRate:number;okxFundingRate:number;openInterest:number;longShortRatio:number;longPct:number;shortPct:number};
+type Market={price:number;change24h:number;volume24h:number;high24h:number;low24h:number;okx:{price:number;bid:number;ask:number}}; type Liquidation={price:number;side:"Long"|"Short";usd:number;exchange:string}; type Deriv={fundingRate:number;okxFundingRate:number;openInterest:number;longShortRatio:number;longPct:number;shortPct:number};
 const fallback:Market={price:108420,change24h:2.34,volume24h:58700000000,high24h:110000,low24h:104000,okx:{price:108400,bid:108399,ask:108401}}; const fallbackD:Deriv={fundingRate:0.008,okxFundingRate:0.007,openInterest:43200000000,longShortRatio:1.18,longPct:54.1,shortPct:45.9};
 const money=(n:number)=>"$"+Math.round(n).toLocaleString("en-US");
 export default function Home(){
- const [m,setM]=useState(fallback),[d,setD]=useState(fallbackD),[amount,setAmount]=useState(5000),[addPrice,setAddPrice]=useState(95000);
- useEffect(()=>{const load=()=>fetch("/api/btc",{cache:"no-store"}).then(r=>r.json()).then(setM).catch(()=>{}); fetch("/api/derivatives",{cache:"no-store"}).then(r=>r.json()).then(x=>x.error?null:setD(x)).catch(()=>{});load();const id=setInterval(load,15000);return()=>clearInterval(id)},[]);
+ const [m,setM]=useState(fallback),[d,setD]=useState(fallbackD),[liq,setLiq]=useState<Liquidation[]>([]),[amount,setAmount]=useState(5000),[addPrice,setAddPrice]=useState(95000);
+ useEffect(()=>{const load=()=>fetch("/api/btc",{cache:"no-store"}).then(r=>r.json()).then(setM).catch(()=>{}); fetch("/api/derivatives",{cache:"no-store"}).then(r=>r.json()).then(x=>x.error?null:setD(x)).catch(()=>{}); fetch("/api/liquidations",{cache:"no-store"}).then(r=>r.json()).then(x=>setLiq(x.clusters||[])).catch(()=>{}); load();const id=setInterval(load,15000);return()=>clearInterval(id)},[]);
  const pnl=((m.price-85730)/85730)*100,addedBtc=amount/Math.max(addPrice,1),newAvg=(85730+addPrice*addedBtc)/(1+addedBtc);
  const pts=[44,49,46,55,51,61,58,67,63,72,70,82,76,88,84,94].map((y,i)=>(i*6)+","+ (125-y)).join(" ");
  return <main className="shell"><header className="topbar"><div><div className="brand">₿ BTC Dashboard <span className="muted">V1.1</span></div><div className="muted">Bitcoin Market Intelligence Workbench</div></div><div className="live"><span className="dot"/> LIVE · 15s</div></header>
