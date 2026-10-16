@@ -17,3 +17,7 @@ Next.js + React + TypeScript + lucide-react
 npm install && npm run dev
 
 > Market figures in this first UI build are placeholders until live data connectors are configured.
+
+
+## V2 development
+On-chain liquidity and ETF flow modules are being integrated incrementally.
